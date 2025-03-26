@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>R.Y.K.A - AI Assistant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div id="chat-container">
+        <h1>R.Y.K.A</h1>
+        <button id="theme-toggle">🌙 Switch Theme</button> <!-- Theme Button -->
+        <div id="chat-box"></div>
+        <div id="input-container">
+            <button id="mic-button">🎤</button>
+            <input type="text" id="user-input" placeholder="Ask me anything...">
+            <button id="send-button">➡</button>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
