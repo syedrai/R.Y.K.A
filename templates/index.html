@@ -1,22 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>R.Y.K.A - AI Assistant</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ryka AI - Cybersecurity Assistant</title>
+  <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
-    <div id="chat-container">
-        <h1>R.Y.K.A</h1>
-        <button id="theme-toggle">🌙 Switch Theme</button> <!-- Theme Button -->
-        <div id="chat-box"></div>
-        <div id="input-container">
-            <button id="mic-button">🎤</button>
-            <input type="text" id="user-input" placeholder="Ask me anything...">
-            <button id="send-button">➡</button>
-        </div>
+  <div class="container">
+    <h1>Ryka AI</h1>
+    <p class="tagline">Your local cybersecurity terminal assistant.</p>
+
+    <div class="chat-box" id="chatBox">
+      <!-- Typing responses will appear here -->
     </div>
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+    <div class="input-area">
+      <input type="text" id="message" placeholder="Ask Ryka anything..." />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <button class="toggle-btn" onclick="toggleTheme()">Toggle Theme</button>
+  </div>
+
+  <script>
+    let isDark = true;
+
+    function toggleTheme() {
+      document.body.classList.toggle("light-theme");
+      isDark = !isDark;
+    }
+
+    async function sendMessage() {
+      const userMessage = document.getElementById("message").value;
+      if (!userMessage.trim()) return;
+
+      const chatBox = document.getElementById("chatBox");
+      const userBubble = document.createElement("div");
+      userBubble.className = "message user";
+      userBubble.textContent = userMessage;
+      chatBox.appendChild(userBubble);
+
+      document.getElementById("message").value = "";
+
+      const responseBubble = document.createElement("div");
+      responseBubble.className = "message ryka";
+      chatBox.appendChild(responseBubble);
+
+      try {
+        const res = await fetch("/ask", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ message: userMessage })
+        });
+
+        const data = await res.json();
+        const reply = data.response || data.error || "No reply";
+
+        // Typing animation
+        let i = 0;
+        function type() {
+          if (i < reply.length) {
+            responseBubble.textContent += reply.charAt(i);
+            i++;
+            setTimeout(type, 25);
+          }
+        }
+        type();
+      } catch (err) {
+        responseBubble.textContent = "⚠️ Error connecting to Ryka";
+      }
+
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+  </script>
 </body>
 </html>
