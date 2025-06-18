@@ -1,35 +1,41 @@
-from flask import Flask, render_template, request, jsonify
+import os
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from dotenv import load_dotenv
 import google.generativeai as genai
 
-app = Flask(__name__)
+# Load environment variables from .env
+load_dotenv()
 
-# Configure Gemini API
-API_KEY = "your_api_key"
-genai.configure(api_key=API_KEY)
+# Setup Gemini API
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 model = genai.GenerativeModel("gemini-1.5-pro")
 
-@app.route("/")
-def index():
-    return render_template("index.html")
+# FastAPI App
+app = FastAPI()
 
-@app.route("/chat", methods=["POST"])
-def chat():
-    data = request.json
-    user_message = data.get("message")
+# Mount static folder if you want to serve HTML
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
-    if not user_message:
-        return jsonify({"response": "Please enter a message."})
-
+@app.get("/", response_class=HTMLResponse)
+async def index():
     try:
-        # Generate AI response
-        response = model.generate_content(user_message)
-        
-        # Format response with lines and spaces
-        formatted_response = f"<hr><br>{response.text.replace('. ', '.<br><br>')}<br><hr>"
+        with open("index.html", "r", encoding="utf-8") as file:
+            return HTMLResponse(content=file.read())
+    except FileNotFoundError:
+        return HTMLResponse(content="<h1>index.html not found</h1>", status_code=404)
 
-        return jsonify({"response": formatted_response})
+@app.post("/chat")
+async def chat(request: Request):
+    try:
+        body = await request.json()
+        prompt = body.get("prompt")
+        if not prompt:
+            return JSONResponse(status_code=400, content={"error": "Prompt missing."})
+
+        response = model.generate_content(prompt)
+        return {"response": response.text.strip()}
+
     except Exception as e:
-        return jsonify({"response": f"Error: {str(e)}"})
-
-if __name__ == "__main__":
-    app.run(debug=True)
+        return JSONResponse(status_code=500, content={"error": str(e)})
