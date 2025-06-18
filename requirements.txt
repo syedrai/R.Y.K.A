@@ -2,3 +2,6 @@ fastapi
 uvicorn
 python-dotenv
 google-generativeai
+
+pip install -r requirements.txt
+uvicorn main:app --reload
